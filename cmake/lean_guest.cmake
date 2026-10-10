@@ -12,12 +12,13 @@ execute_process(COMMAND ${LEAN_EXE} --print-prefix OUTPUT_VARIABLE _prefix OUTPU
 set(LEAN_TOOLCHAIN_LEAN ${_prefix}/bin/lean)
 execute_process(COMMAND ${LEAN_EXE} --githash OUTPUT_VARIABLE LEAN_GITHASH OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-find_package(Git REQUIRED)
+# patch(1), not git apply: inside another git work tree, git apply skips paths outside it without an error.
+find_program(PATCH_EXE patch REQUIRED NO_CMAKE_FIND_ROOT_PATH)
 FetchContent_Declare(lean4
 	URL https://github.com/leanprover/lean4/archive/refs/tags/v${LEAN_VERSION}.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 	SOURCE_SUBDIR no-cmake-entry
-	PATCH_COMMAND ${GIT_EXECUTABLE} apply -p2 ${CMAKE_CURRENT_LIST_DIR}/../patches/runtime-guest.patch)
+	PATCH_COMMAND ${PATCH_EXE} -p2 --forward --batch -i ${CMAKE_CURRENT_LIST_DIR}/../patches/runtime-guest.patch)
 FetchContent_Declare(libuv
 	URL https://github.com/libuv/libuv/archive/refs/tags/v${LIBUV_VERSION}.tar.gz
 	DOWNLOAD_EXTRACT_TIMESTAMP TRUE)

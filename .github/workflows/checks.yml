@@ -1,0 +1,55 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  commits:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Commit subjects are sentence-case prose, and the checker's controls
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/V-Sekai-fire/manuals-weftspun/main/scripts/check_commit_style.py -o "$RUNNER_TEMP/check_commit_style.py"
+          python3 "$RUNNER_TEMP/check_commit_style.py" --self-test
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python3 "$RUNNER_TEMP/check_commit_style.py" --base "origin/${{ github.base_ref }}"
+          fi
+
+  guest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: weft/3-interactor/lean-guest
+      - name: Tools from apt
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q clang lld cmake ninja-build qemu-user
+      - name: elan with the pinned Lean
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain leanprover/lean4:v4.34.1
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: The goal manifest's riscv64 sysroot
+        working-directory: weft
+        run: git clone -q --depth 1 https://github.com/V-Sekai-fire/repository-riscv64-sysroot 5-repository/riscv64-sysroot
+      - name: hello.elf from a clean runner, run under qemu with its planted control
+        working-directory: weft/3-interactor/lean-guest
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$GITHUB_WORKSPACE/weft/5-repository/riscv64-sysroot/toolchain.cmake" \
+            -DLEAN_GUEST_EMULATOR=/usr/bin/qemu-riscv64
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+          test "$(ctest --test-dir build -N | grep -c 'Test #')" = 2

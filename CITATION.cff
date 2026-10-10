@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: If you use this build, cite Lean 4 and libriscv.
+title: interactor-lean-guest
+abstract: >-
+  Builds Lean 4 programs as static riscv64 Linux ELF files for
+  godot-sandbox (libriscv) guests, with a Lean runtime patched to run
+  without the libuv event loop.
+type: software
+authors:
+  - name: V-Sekai-fire
+license: Apache-2.0
+references:
+  - type: software
+    title: Lean 4
+    url: https://github.com/leanprover/lean4
+    license: Apache-2.0
+  - type: software
+    title: libriscv
+    url: https://github.com/libriscv/libriscv
+    license: BSD-3-Clause

@@ -1,0 +1,319 @@
+diff --git a/a/src/runtime/libuv.cpp b/b/src/runtime/libuv.cpp
+index 656e53d..71eb3e2 100644
+--- a/a/src/runtime/libuv.cpp
++++ b/b/src/runtime/libuv.cpp
+@@ -8,13 +8,13 @@ Author: Markus Himmel, Sofia Rodrigues
+ #include "runtime/libuv.h"
+ #include "runtime/object.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ extern "C" void initialize_libuv() {
+     initialize_libuv_timer();
+diff --git a/a/src/runtime/openssl.cpp b/b/src/runtime/openssl.cpp
+index 105678c..e96af9a 100644
+--- a/a/src/runtime/openssl.cpp
++++ b/b/src/runtime/openssl.cpp
+@@ -5,7 +5,7 @@ Author: Sofia Rodrigues
+ */
+ #include "runtime/openssl.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_OPENSSL
+ #include <openssl/opensslv.h>
+ #include <openssl/err.h>
+ #include <openssl/ssl.h>
+diff --git a/a/src/runtime/uv/dns.cpp b/b/src/runtime/uv/dns.cpp
+index 0df7902..61d018f 100644
+--- a/a/src/runtime/uv/dns.cpp
++++ b/b/src/runtime/uv/dns.cpp
+@@ -7,12 +7,12 @@ Author: Sofia Rodrigues, Henrik Böving
+ #include "runtime/uv/dns.h"
+ #include <cstring>
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+ namespace lean {
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ using namespace std;
+ 
+diff --git a/a/src/runtime/uv/dns.h b/b/src/runtime/uv/dns.h
+index 7fe2f59..3c98520 100644
+--- a/a/src/runtime/uv/dns.h
++++ b/b/src/runtime/uv/dns.h
+@@ -11,7 +11,7 @@ Author: Sofia Rodrigues
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ #include <uv.h>
+ 
+diff --git a/a/src/runtime/uv/event_loop.cpp b/b/src/runtime/uv/event_loop.cpp
+index fa85439..056d566 100644
+--- a/a/src/runtime/uv/event_loop.cpp
++++ b/b/src/runtime/uv/event_loop.cpp
+@@ -18,7 +18,7 @@ to continue its execution.
+ */
+ 
+ namespace lean {
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ 
+ event_loop_t global_ev;
+@@ -146,8 +146,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_uv_event_loop_configure(b_obj_arg optio
+ }
+ 
+ /* Std.Internal.UV.Loop.alive : BaseIO UInt64 */
+-extern "C" LEAN_EXPORT lean_obj_res lean_uv_event_loop_alive() {
+-    return io_result_mk_error("lean_uv_event_loop_alive is not supported");
++extern "C" LEAN_EXPORT uint8_t lean_uv_event_loop_alive() {
++    return 0;
+ }
+ 
+ #endif
+diff --git a/a/src/runtime/uv/event_loop.h b/b/src/runtime/uv/event_loop.h
+index a44700b..84dc94f 100644
+--- a/a/src/runtime/uv/event_loop.h
++++ b/b/src/runtime/uv/event_loop.h
+@@ -9,7 +9,7 @@ Author: Sofia Rodrigues
+ #include "runtime/io.h"
+ #include "runtime/object.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+@@ -17,7 +17,7 @@ namespace lean {
+ 
+ void initialize_libuv_loop();
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ 
+ // Event loop structure for managing asynchronous events and synchronization across multiple threads.
+diff --git a/a/src/runtime/uv/net_addr.cpp b/b/src/runtime/uv/net_addr.cpp
+index 80fb633..6349d2f 100644
+--- a/a/src/runtime/uv/net_addr.cpp
++++ b/b/src/runtime/uv/net_addr.cpp
+@@ -9,7 +9,7 @@ Author: Henrik Böving
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ void lean_ipv4_addr_to_in_addr(b_obj_arg ipv4_addr, in_addr* out) {
+     out->s_addr = 0;
+diff --git a/a/src/runtime/uv/net_addr.h b/b/src/runtime/uv/net_addr.h
+index c6ac0aa..95088e4 100644
+--- a/a/src/runtime/uv/net_addr.h
++++ b/b/src/runtime/uv/net_addr.h
+@@ -7,13 +7,13 @@ Author: Henrik Böving
+ #include <lean/lean.h>
+ #include "runtime/object.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ typedef union in_addr_storage {
+     in_addr ipv4;
+diff --git a/a/src/runtime/uv/signal.cpp b/b/src/runtime/uv/signal.cpp
+index 4a7f190..e84c160 100644
+--- a/a/src/runtime/uv/signal.cpp
++++ b/b/src/runtime/uv/signal.cpp
+@@ -6,7 +6,7 @@ Author: Sofia Rodrigues
+ #include "runtime/uv/signal.h"
+ 
+ namespace lean {
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ using namespace std;
+ 
+diff --git a/a/src/runtime/uv/signal.h b/b/src/runtime/uv/signal.h
+index f899f6a..b7bb082 100644
+--- a/a/src/runtime/uv/signal.h
++++ b/b/src/runtime/uv/signal.h
+@@ -8,7 +8,7 @@ Author: Sofia Rodrigues
+ #include <lean/lean.h>
+ #include "runtime/uv/event_loop.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+@@ -17,7 +17,7 @@ namespace lean {
+ static lean_external_class * g_uv_signal_external_class = NULL;
+ void initialize_libuv_signal();
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ 
+ enum uv_signal_state {
+diff --git a/a/src/runtime/uv/system.cpp b/b/src/runtime/uv/system.cpp
+index 3ac95b6..4829dec 100644
+--- a/a/src/runtime/uv/system.cpp
++++ b/b/src/runtime/uv/system.cpp
+@@ -7,7 +7,7 @@ Author: Sofia Rodrigues
+ #include "runtime/uv/system.h"
+ 
+ namespace lean {
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ using namespace std;
+ 
+@@ -634,7 +634,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_uv_os_get_passwd() {
+ }
+ 
+ // Std.Internal.UV.System.osGetGroup : IO (Option GroupInfo)
+-extern "C" LEAN_EXPORT lean_obj_res lean_uv_os_get_group() {
++extern "C" LEAN_EXPORT lean_obj_res lean_uv_os_get_group(uint64_t gid) {
+     lean_always_assert(
+         false && ("Please build a version of Lean4 with libuv to invoke this.")
+     );
+diff --git a/a/src/runtime/uv/system.h b/b/src/runtime/uv/system.h
+index 8ef8f82..93eda7b 100644
+--- a/a/src/runtime/uv/system.h
++++ b/b/src/runtime/uv/system.h
+@@ -4,7 +4,7 @@
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ #include <uv.h>
+ #endif
+diff --git a/a/src/runtime/uv/tcp.cpp b/b/src/runtime/uv/tcp.cpp
+index eadc3be..c499218 100644
+--- a/a/src/runtime/uv/tcp.cpp
++++ b/b/src/runtime/uv/tcp.cpp
+@@ -9,7 +9,7 @@ Author: Sofia Rodrigues
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ // Stores all the things needed to connect to a TCP socket.
+ typedef struct {
+diff --git a/a/src/runtime/uv/tcp.h b/b/src/runtime/uv/tcp.h
+index dca1511..4387d00 100644
+--- a/a/src/runtime/uv/tcp.h
++++ b/b/src/runtime/uv/tcp.h
+@@ -9,7 +9,7 @@ Author: Sofia Rodrigues
+ #include "runtime/uv/net_addr.h"
+ #include "runtime/object_ref.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+@@ -18,7 +18,7 @@ namespace lean {
+ static lean_external_class* g_uv_tcp_socket_external_class = NULL;
+ void initialize_libuv_tcp_socket();
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ // Structure for managing a single TCP socket object, including promise handling,
+ // connection state, and read/write buffers.
+diff --git a/a/src/runtime/uv/timer.cpp b/b/src/runtime/uv/timer.cpp
+index 05519ec..1ff4651 100644
+--- a/a/src/runtime/uv/timer.cpp
++++ b/b/src/runtime/uv/timer.cpp
+@@ -7,7 +7,7 @@ Author: Sofia Rodrigues, Henrik Böving
+ #include "runtime/uv/timer.h"
+ 
+ namespace lean {
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ using namespace std;
+ 
+diff --git a/a/src/runtime/uv/timer.h b/b/src/runtime/uv/timer.h
+index b2fc3c6..7c45e11 100644
+--- a/a/src/runtime/uv/timer.h
++++ b/b/src/runtime/uv/timer.h
+@@ -8,7 +8,7 @@ Author: Sofia Rodrigues, Henrik Böving
+ #include <lean/lean.h>
+ #include "runtime/uv/event_loop.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+@@ -17,7 +17,7 @@ namespace lean {
+ static lean_external_class * g_uv_timer_external_class = NULL;
+ void initialize_libuv_timer();
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ using namespace std;
+ 
+ enum uv_timer_state {
+diff --git a/a/src/runtime/uv/udp.cpp b/b/src/runtime/uv/udp.cpp
+index 110c360..3795276 100644
+--- a/a/src/runtime/uv/udp.cpp
++++ b/b/src/runtime/uv/udp.cpp
+@@ -9,7 +9,7 @@ Author: Sofia Rodrigues
+ 
+ namespace lean {
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ // Stores all the things needed to send data to a UDP socket.
+ typedef struct {
+diff --git a/a/src/runtime/uv/udp.h b/b/src/runtime/uv/udp.h
+index 4c2f46b..4d78e6b 100644
+--- a/a/src/runtime/uv/udp.h
++++ b/b/src/runtime/uv/udp.h
+@@ -9,7 +9,7 @@ Author: Sofia Rodrigues
+ #include "runtime/uv/net_addr.h"
+ #include "runtime/object_ref.h"
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ #include <uv.h>
+ #endif
+ 
+@@ -18,7 +18,7 @@ namespace lean {
+ static lean_external_class * g_uv_udp_socket_external_class = NULL;
+ void initialize_libuv_udp_socket();
+ 
+-#ifndef LEAN_EMSCRIPTEN
++#ifndef LEAN_NO_UV
+ 
+ // Structure for managing a single UDP socket object, including promise handling,
+ // connection state, and read/write buffers.

@@ -1,0 +1,22 @@
+diff --git a/lib/libriscv/linux/system_calls.cpp b/lib/libriscv/linux/system_calls.cpp
+index 0612b98..e68ba4c 100644
+--- a/lib/libriscv/linux/system_calls.cpp
++++ b/lib/libriscv/linux/system_calls.cpp
+@@ -50,13 +50,15 @@ struct guest_iovec {
+ #if defined(__APPLE__)
+ #include <mach/mach_time.h>
+ static int get_time(int clkid, struct timespec* ts) {
+-	if (clkid == CLOCK_REALTIME) {
++	/* clkid is a guest (Linux) clock id; macOS numbers its clocks differently. */
++	if (clkid == 0 /* CLOCK_REALTIME */ || clkid == 5 /* CLOCK_REALTIME_COARSE */) {
+ 		struct timeval tv;
+ 		gettimeofday(&tv, NULL);
+ 		ts->tv_sec = tv.tv_sec;
+ 		ts->tv_nsec = tv.tv_usec * 1000;
+ 		return 0;
+-	} else if (clkid == CLOCK_MONOTONIC) {
++	} else if (clkid == 1 /* MONOTONIC */ || clkid == 4 /* MONOTONIC_RAW */
++		|| clkid == 6 /* MONOTONIC_COARSE */ || clkid == 7 /* BOOTTIME */) {
+ 		uint64_t time = mach_absolute_time();
+ 		mach_timebase_info_data_t timebase;
+ 		mach_timebase_info(&timebase);

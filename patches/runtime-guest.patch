@@ -317,3 +317,34 @@ index 4c2f46b..4d78e6b 100644
  
  // Structure for managing a single UDP socket object, including promise handling,
  // connection state, and read/write buffers.
+diff --git a/a/src/runtime/io.cpp b/b/src/runtime/io.cpp
+--- a/a/src/runtime/io.cpp
++++ b/b/src/runtime/io.cpp
+@@ -874,6 +874,27 @@
+ 
+     if (nbytes == 0) return io_result_mk_ok(lean_alloc_sarray(1, 0, 0));
+ 
++#if defined(LEAN_NO_UV) && defined(__linux__)
++    // A sandbox guest has no /dev/urandom: the host answers getrandom (syscall 278) and nothing else.
++    if (lean_alloc_sarray_would_overflow(1, nbytes)) {
++        return io_result_mk_error(decode_io_error(ENOMEM, NULL));
++    }
++    {
++        obj_res res = lean_alloc_sarray(1, 0, nbytes);
++        size_t got = 0;
++        while (got < nbytes) {
++            ssize_t n = getrandom(lean_sarray_cptr(res) + got, nbytes - got, 0);
++            if (n < 0) {
++                if (errno == EINTR) continue;
++                dec_ref(res);
++                return io_result_mk_error(decode_io_error(errno, nullptr));
++            }
++            got += n;
++        }
++        lean_sarray_set_size(res, nbytes);
++        return io_result_mk_ok(res);
++    }
++#endif
+ #if !defined(LEAN_WINDOWS)
+     int fd_urandom = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
+     if (fd_urandom < 0) {
